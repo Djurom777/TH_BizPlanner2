@@ -7,15 +7,13 @@
 
 import SwiftUI
 
+// This file is kept for compatibility but is no longer used
+// The app now starts with TH_BizPlanner2App.swift
+
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        Text("PlinkoBiz Planner")
+            .appStyle(.title, color: .inkPrimaryDark)
     }
 }
 
