@@ -52,8 +52,8 @@ struct MainTabView: View {
             setupTabBarAppearance()
             gameViewModel.appViewModel = appViewModel
         }
-        .onChange(of: appViewModel.coinBalance) { _ in
-            // Refresh stats when coin balance changes
+        .onChange(of: appViewModel.starBalance) { _ in
+            // Refresh stats when star balance changes
             statsViewModel.refreshStats()
         }
     }

@@ -13,9 +13,6 @@ struct EditProfileView: View {
     
     @State private var name = ""
     @State private var goal = ""
-    @State private var avatarImage: UIImage?
-    @State private var showingImagePicker = false
-    @State private var hasChangedImage = false
     
     private var isFormValid: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -34,55 +31,11 @@ struct EditProfileView: View {
                             .appStyle(.title, color: .inkPrimaryDark)
                             .padding(.top, Layout.spacing16)
                         
-                        // Avatar section
+                        // Profile icon
                         VStack(spacing: Layout.spacing16) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.surface)
-                                    .frame(width: 120, height: 120)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.border, lineWidth: 2)
-                                    )
-                                
-                                if let avatarImage = avatarImage {
-                                    Image(uiImage: avatarImage)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .frame(width: 120, height: 120)
-                                        .clipShape(Circle())
-                                } else {
-                                    Image(systemName: "person.circle.fill")
-                                        .font(.system(size: 60))
-                                        .foregroundColor(.border)
-                                }
-                                
-                                // Edit button
-                                VStack {
-                                    Spacer()
-                                    HStack {
-                                        Spacer()
-                                        Button {
-                                            showingImagePicker = true
-                                        } label: {
-                                            Image(systemName: "camera.circle.fill")
-                                                .font(.title2)
-                                                .foregroundColor(.primary)
-                                                .background(Color.white, in: Circle())
-                                        }
-                                        .offset(x: -8, y: -8)
-                                    }
-                                }
-                                .frame(width: 120, height: 120)
-                            }
-                            
-                            Button("Remove Photo") {
-                                avatarImage = nil
-                                hasChangedImage = true
-                            }
-                            .foregroundColor(.error)
-                            .font(.caption)
-                            .opacity(avatarImage != nil ? 1.0 : 0.0)
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 80))
+                                .foregroundColor(.accentGold)
                         }
                         
                         // Form fields
@@ -123,12 +76,6 @@ struct EditProfileView: View {
                 .disabled(!isFormValid)
             )
         }
-        .sheet(isPresented: $showingImagePicker) {
-            ImagePickerView(selectedImage: $avatarImage)
-                .onDisappear {
-                    hasChangedImage = true
-                }
-        }
         .onAppear {
             loadCurrentProfile()
         }
@@ -139,11 +86,6 @@ struct EditProfileView: View {
         
         name = user.name ?? ""
         goal = user.goal ?? ""
-        
-        if let avatarData = user.avatarData,
-           let uiImage = UIImage(data: avatarData) {
-            avatarImage = uiImage
-        }
     }
     
     private func saveProfile() {
@@ -154,14 +96,6 @@ struct EditProfileView: View {
         
         user.name = trimmedName
         user.goal = trimmedGoal.isEmpty ? nil : trimmedGoal
-        
-        if hasChangedImage {
-            if let avatarImage = avatarImage {
-                user.avatarData = avatarImage.jpegData(compressionQuality: 0.8)
-            } else {
-                user.avatarData = nil
-            }
-        }
         
         CoreDataService.shared.save()
         appViewModel.currentUser = user

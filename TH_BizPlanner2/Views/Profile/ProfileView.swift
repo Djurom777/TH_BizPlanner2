@@ -21,7 +21,7 @@ struct ProfileView: View {
                 // Header
                 GradientHeader(
                     title: "Profile",
-                    coinBalance: appViewModel.coinBalance
+                    starBalance: appViewModel.starBalance
                 )
                 
                 // Content
@@ -79,30 +79,10 @@ struct ProfileCard: View {
         VStack(spacing: Layout.spacing20) {
             // Avatar and Name
             VStack(spacing: Layout.spacing16) {
-                // Avatar
-                ZStack {
-                    Circle()
-                        .fill(Color.surface)
-                        .frame(width: 100, height: 100)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.border, lineWidth: 2)
-                        )
-                    
-                    if let user = appViewModel.currentUser,
-                       let avatarData = user.avatarData,
-                       let uiImage = UIImage(data: avatarData) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 100, height: 100)
-                            .clipShape(Circle())
-                    } else {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.border)
-                    }
-                }
+                // Profile Icon
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 80))
+                    .foregroundColor(.accentGold)
                 
                 // Name
                 VStack(spacing: Layout.spacing4) {
@@ -120,9 +100,9 @@ struct ProfileCard: View {
             // Stats
             HStack(spacing: Layout.spacing20) {
                 ProfileStat(
-                    icon: "dollarsign.circle.fill",
-                    title: "Coins",
-                    value: "\(appViewModel.coinBalance)",
+                    icon: "star.fill",
+                    title: "Stars",
+                    value: "\(appViewModel.starBalance)",
                     color: .accentGold
                 )
                 

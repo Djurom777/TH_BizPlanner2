@@ -8,104 +8,223 @@
 import SwiftUI
 import Combine
 
+// MARK: - Target Model
+struct GameTarget: Identifiable {
+    let id = UUID()
+    var position: CGPoint
+    var size: CGFloat
+    var color: Color
+    var scale: CGFloat = 1.0
+    var opacity: Double = 1.0
+    var appearTime: Date
+}
+
 class GameViewModel: ObservableObject {
     @Published var isPlaying = false
-    @Published var ballPosition = CGPoint.zero
+    @Published var activeTargets: [GameTarget] = []
+    @Published var currentScore = 0
+    @Published var lastScore = 0
+    @Published var bestScore = 0
     @Published var showReward = false
     @Published var lastReward = 0
-    @Published var canPlay = true
+    @Published var gameTimeRemaining: Double = 30.0
+    @Published var bestReactionTime: Double = 999.0
+    @Published var showMissIndicator = false
+    @Published var missIndicatorPosition = CGPoint.zero
     
     private let coreDataService = CoreDataService.shared
-    private let gameCost: Int32 = 20
-    private let possibleRewards = [5, 10, 15, 20, 25, 30, 50, 100]
+    private var gameTimer: Timer?
+    private var targetSpawnTimer: Timer?
+    private let gameDuration: Double = 30.0
+    private let targetLifetime: Double = 2.0
+    private let maxActiveTargets = 3
+    private var gameAreaSize = CGSize(width: 300, height: 400)
     
     var appViewModel: AppViewModel?
     
-    func playGame() {
-        guard canPlay,
-              let appViewModel = appViewModel,
-              appViewModel.spendCoins(gameCost) else { return }
+    init() {
+        loadBestScore()
+    }
+    
+    // MARK: - Game Control
+    func startGame() {
+        guard !isPlaying else { return }
         
         isPlaying = true
-        canPlay = false
+        currentScore = 0
+        gameTimeRemaining = gameDuration
+        activeTargets.removeAll()
+        showReward = false
+        showMissIndicator = false
         
-        // Simulate ball drop animation
-        withAnimation(.easeIn(duration: 0.5)) {
-            ballPosition = CGPoint(x: UIScreen.main.bounds.width / 2, y: 100)
+        startGameTimer()
+        startTargetSpawning()
+    }
+    
+    private func endGame() {
+        isPlaying = false
+        gameTimer?.invalidate()
+        targetSpawnTimer?.invalidate()
+        activeTargets.removeAll()
+        
+        lastScore = currentScore
+        if currentScore > bestScore {
+            bestScore = currentScore
+            saveBestScore()
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(AppAnimations.gravity) {
-                self.ballPosition = CGPoint(
-                    x: CGFloat.random(in: 50...(UIScreen.main.bounds.width - 50)),
-                    y: UIScreen.main.bounds.height - 200
-                )
+        // Award stars based on performance
+        let starsEarned = calculateStarsEarned()
+        if starsEarned > 0 {
+            lastReward = starsEarned
+            appViewModel?.earnStars(Int32(starsEarned))
+            
+            // Create game session record
+            _ = coreDataService.createGameSession(
+                coinsSpent: 0, // Free to play
+                coinsEarned: Int32(starsEarned)
+            )
+            
+            showReward = true
+            
+            // Add haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.impactOccurred()
+            
+            // Hide reward after delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                self.showReward = false
             }
-        }
-        
-        // Show reward after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
-            self.displayReward()
         }
     }
     
-    private func displayReward() {
-        let reward = possibleRewards.randomElement() ?? 10
-        lastReward = reward
+    private func calculateStarsEarned() -> Int {
+        let baseStars = currentScore / 5 // 1 star per 5 points
+        let bonusStars = currentScore > bestScore ? 5 : 0 // Bonus for new high score
+        return max(1, baseStars + bonusStars) // Minimum 1 star for playing
+    }
+    
+    // MARK: - Game Timers
+    private func startGameTimer() {
+        gameTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            self.gameTimeRemaining -= 0.1
+            
+            if self.gameTimeRemaining <= 0 {
+                self.endGame()
+            }
+        }
+    }
+    
+    private func startTargetSpawning() {
+        targetSpawnTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            self.spawnTarget()
+            self.removeExpiredTargets()
+        }
         
-        // Award coins
-        appViewModel?.earnCoins(Int32(reward))
+        // Spawn first target immediately
+        spawnTarget()
+    }
+    
+    // MARK: - Game Area Management
+    func updateGameArea(size: CGSize) {
+        gameAreaSize = size
+    }
+    
+    // MARK: - Target Management
+    private func spawnTarget() {
+        guard activeTargets.count < maxActiveTargets else { return }
         
-        // Create game session record
-        _ = coreDataService.createGameSession(
-            coinsSpent: gameCost,
-            coinsEarned: Int32(reward)
+        let sizes: [CGFloat] = [40, 50, 60]
+        let targetSize = sizes.randomElement() ?? 50
+        let padding: CGFloat = targetSize / 2 + 10 // Ensure targets don't spawn at edges
+        
+        let position = CGPoint(
+            x: CGFloat.random(in: padding...(gameAreaSize.width - padding)),
+            y: CGFloat.random(in: padding...(gameAreaSize.height - padding))
         )
         
-        showReward = true
+        let colors: [Color] = [.accentGold, .success, .primary, .accentOrange]
         
-        // Add haptic feedback
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
+        let target = GameTarget(
+            position: position,
+            size: targetSize,
+            color: colors.randomElement() ?? .accentGold,
+            appearTime: Date()
+        )
         
-        // Reset after showing reward
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.resetGame()
-        }
-    }
-    
-    private func resetGame() {
-        isPlaying = false
-        showReward = false
-        ballPosition = CGPoint.zero
-        canPlay = true
-    }
-    
-    func generatePegs() -> [CGPoint] {
-        var pegs: [CGPoint] = []
-        let screenWidth = UIScreen.main.bounds.width
-        let pegSpacing: CGFloat = 40
-        let rowSpacing: CGFloat = 60
-        let startY: CGFloat = 200
+        activeTargets.append(target)
         
-        for row in 0..<8 {
-            let y = startY + CGFloat(row) * rowSpacing
-            let isEvenRow = row % 2 == 0
-            let pegCount = isEvenRow ? 8 : 7
-            let totalWidth = CGFloat(pegCount - 1) * pegSpacing
-            let startX = (screenWidth - totalWidth) / 2
-            
-            for col in 0..<pegCount {
-                let x = startX + CGFloat(col) * pegSpacing
-                pegs.append(CGPoint(x: x, y: y))
+        // Animate target appearance
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            if let index = activeTargets.firstIndex(where: { $0.id == target.id }) {
+                activeTargets[index].scale = 1.0
             }
         }
-        
-        return pegs
     }
     
-    var canAffordGame: Bool {
-        guard let appViewModel = appViewModel else { return false }
-        return appViewModel.coinBalance >= gameCost
+    private func removeExpiredTargets() {
+        let now = Date()
+        activeTargets.removeAll { target in
+            let elapsed = now.timeIntervalSince(target.appearTime)
+            if elapsed > targetLifetime {
+                // Show miss indicator
+                showMissIndicator(at: target.position)
+                return true
+            }
+            return false
+        }
+    }
+    
+    func targetTapped(_ target: GameTarget) {
+        guard let index = activeTargets.firstIndex(where: { $0.id == target.id }) else { return }
+        
+        let reactionTime = Date().timeIntervalSince(target.appearTime)
+        if reactionTime < bestReactionTime {
+            bestReactionTime = reactionTime
+        }
+        
+        // Calculate points based on reaction time and target size
+        let speedBonus = max(1, Int((2.0 - reactionTime) * 10)) // Faster = more points
+        let sizeBonus = target.size < 45 ? 2 : 1 // Smaller targets = more points
+        let points = speedBonus * sizeBonus
+        
+        currentScore += points
+        
+        // Remove target with animation
+        withAnimation(.easeOut(duration: 0.2)) {
+            activeTargets[index].scale = 0.1
+            activeTargets[index].opacity = 0.0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.activeTargets.removeAll { $0.id == target.id }
+        }
+        
+        // Haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+    }
+    
+    private func showMissIndicator(at position: CGPoint) {
+        missIndicatorPosition = position
+        showMissIndicator = true
+        
+        withAnimation(.easeOut(duration: 1.0)) {
+            showMissIndicator = false
+        }
+    }
+    
+    // MARK: - Data Persistence
+    private func loadBestScore() {
+        bestScore = UserDefaults.standard.integer(forKey: "FocusGameBestScore")
+        bestReactionTime = UserDefaults.standard.double(forKey: "FocusGameBestReactionTime")
+        if bestReactionTime == 0 {
+            bestReactionTime = 999.0
+        }
+    }
+    
+    private func saveBestScore() {
+        UserDefaults.standard.set(bestScore, forKey: "FocusGameBestScore")
+        UserDefaults.standard.set(bestReactionTime, forKey: "FocusGameBestReactionTime")
     }
 }

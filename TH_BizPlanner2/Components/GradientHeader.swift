@@ -9,7 +9,7 @@ import SwiftUI
 
 struct GradientHeader: View {
     let title: String
-    let coinBalance: Int32
+    let starBalance: Int32
     
     var body: some View {
         ZStack {
@@ -31,7 +31,7 @@ struct GradientHeader: View {
                 
                 Spacer()
                 
-                CoinChip(balance: coinBalance)
+                StarChip(balance: starBalance)
             }
             .padding(.horizontal, Layout.spacing20)
             .padding(.top, Layout.spacing16)
@@ -45,7 +45,7 @@ struct GradientHeader: View {
             .ignoresSafeArea()
         
         VStack {
-            GradientHeader(title: "Planner", coinBalance: 150)
+            GradientHeader(title: "Planner", starBalance: 150)
             Spacer()
         }
     }

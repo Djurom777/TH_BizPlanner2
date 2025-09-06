@@ -19,51 +19,94 @@ struct GameView: View {
             VStack(spacing: 0) {
                 // Header
                 GradientHeader(
-                    title: "Game",
-                    coinBalance: appViewModel.coinBalance
+                    title: "Focus Game",
+                    starBalance: appViewModel.starBalance
                 )
                 
                 // Game Content
-                GeometryReader { geometry in
-                    ZStack {
-                        // Plinko Board
-                        PlinkoBoard()
+                ScrollView {
+                    VStack(spacing: Layout.spacing24) {
+                        // Game Description
+                        VStack(spacing: Layout.spacing12) {
+                            Image(systemName: "brain.head.profile")
+                                .font(.system(size: 50))
+                                .foregroundColor(.accentGold)
+                            
+                            Text("Focus Challenge")
+                                .appStyle(.title, color: .inkPrimaryDark)
+                            
+                            Text("Test your concentration! Tap the target circles as they appear. The faster you react, the more stars you earn!")
+                                .appStyle(.body, color: .inkPrimaryDark.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(Layout.spacing20)
+                        .glassCard()
                         
-                        // Ball
+                        // Game Area
                         if gameViewModel.isPlaying {
-                            Circle()
-                                .fill(Color.accentGold)
-                                .frame(width: 12, height: 12)
-                                .position(gameViewModel.ballPosition)
-                                .shadow(color: .accentGold.opacity(0.5), radius: 8)
+                            FocusGameBoard()
+                                .environmentObject(gameViewModel)
+                        } else {
+                            // Game Stats
+                            VStack(spacing: Layout.spacing16) {
+                                HStack(spacing: Layout.spacing20) {
+                                    StatCard(
+                                        icon: "target",
+                                        title: "Best Score",
+                                        value: "\(gameViewModel.bestScore)",
+                                        color: .success
+                                    )
+                                    
+                                    StatCard(
+                                        icon: "timer",
+                                        title: "Best Time",
+                                        value: String(format: "%.1fs", gameViewModel.bestReactionTime),
+                                        color: .primary
+                                    )
+                                }
+                                
+                                if gameViewModel.lastScore > 0 {
+                                    Text("Last game: \(gameViewModel.lastScore) stars earned!")
+                                        .appStyle(.body, color: .success)
+                                }
+                            }
+                            .padding(Layout.spacing20)
+                            .glassCard()
                         }
                         
                         // Reward Banner
                         if gameViewModel.showReward {
-                            RewardBanner(coins: gameViewModel.lastReward)
+                            RewardBanner(stars: gameViewModel.lastReward)
                                 .transition(.scale.combined(with: .opacity))
                         }
                     }
+                    .padding(.horizontal, Layout.spacing20)
+                    .padding(.top, Layout.spacing16)
                 }
                 
                 // Play Button
                 VStack(spacing: Layout.spacing16) {
-                    if !gameViewModel.canAffordGame {
-                        Text("Need 20 coins to play")
-                            .appStyle(.body, color: .warning)
-                    }
-                    
-                    Button {
-                        gameViewModel.playGame()
-                    } label: {
-                        HStack(spacing: Layout.spacing8) {
-                            Image(systemName: "play.fill")
-                            Text("Play (20 coins)")
+                    if gameViewModel.isPlaying {
+                        VStack(spacing: Layout.spacing8) {
+                            Text("Score: \(gameViewModel.currentScore)")
+                                .appStyle(.title, color: .accentGold)
+                            
+                            Text("Time: \(String(format: "%.1f", gameViewModel.gameTimeRemaining))s")
+                                .appStyle(.body, color: .inkPrimaryDark.opacity(0.7))
                         }
+                    } else {
+                        Button {
+                            gameViewModel.startGame()
+                        } label: {
+                            HStack(spacing: Layout.spacing8) {
+                                Image(systemName: "play.fill")
+                                Text("Start Focus Challenge")
+                            }
+                        }
+                        .primaryButton(isEnabled: !gameViewModel.isPlaying)
                     }
-                    .primaryButton(isEnabled: gameViewModel.canPlay && gameViewModel.canAffordGame)
-                    .padding(.horizontal, Layout.spacing20)
                 }
+                .padding(.horizontal, Layout.spacing20)
                 .padding(.bottom, Layout.spacing24)
             }
         }
@@ -73,51 +116,79 @@ struct GameView: View {
     }
 }
 
-struct PlinkoBoard: View {
+struct FocusGameBoard: View {
     @EnvironmentObject var gameViewModel: GameViewModel
     
     var body: some View {
-        ZStack {
-            // Pegs
-            ForEach(Array(gameViewModel.generatePegs().enumerated()), id: \.offset) { index, peg in
-                Circle()
-                    .fill(Color.primaryVariant)
-                    .frame(width: 8, height: 8)
-                    .position(peg)
-                    .shadow(color: Color.primaryVariant.opacity(0.5), radius: 4)
-                    .scaleEffect(gameViewModel.isPlaying ? 1.1 : 1.0)
-                    .animation(
-                        AppAnimations.bounce.delay(Double(index) * 0.02),
-                        value: gameViewModel.isPlaying
-                    )
-            }
-            
-            // Prize Slots at Bottom
-            HStack(spacing: 0) {
-                ForEach([5, 10, 25, 50, 100, 25, 10, 5], id: \.self) { prize in
-                    VStack(spacing: Layout.spacing4) {
-                        Text("\(prize)")
-                            .appStyle(.caption, color: .accentGold)
-                            .font(.system(size: 12, weight: .bold))
-                        
-                        Rectangle()
-                            .fill(Color.accentGold.opacity(0.3))
-                            .frame(height: 40)
-                            .overlay(
-                                Rectangle()
-                                    .stroke(Color.accentGold, lineWidth: 1)
-                            )
-                    }
+        GeometryReader { geometry in
+            ZStack {
+                // Background
+                RoundedRectangle(cornerRadius: Layout.cornerRadiusCard)
+                    .fill(Color.surface.opacity(0.3))
+                    .frame(width: geometry.size.width, height: 400)
+                
+                // Targets
+                ForEach(gameViewModel.activeTargets) { target in
+                    Circle()
+                        .fill(target.color)
+                        .frame(width: target.size, height: target.size)
+                        .position(target.position)
+                        .scaleEffect(target.scale)
+                        .opacity(target.opacity)
+                        .onTapGesture {
+                            gameViewModel.targetTapped(target)
+                        }
+                        .animation(.easeInOut(duration: 0.3), value: target.scale)
+                }
+                
+                // Miss indicator
+                if gameViewModel.showMissIndicator {
+                    Text("Missed!")
+                        .appStyle(.subtitle, color: .error)
+                        .position(gameViewModel.missIndicatorPosition)
+                        .transition(.opacity)
                 }
             }
-            .padding(.horizontal, Layout.spacing20)
-            .offset(y: UIScreen.main.bounds.height * 0.35)
+            .clipped() // Ensure targets don't go outside bounds
+            .onAppear {
+                gameViewModel.updateGameArea(size: geometry.size)
+            }
+            .onChange(of: geometry.size) { newSize in
+                gameViewModel.updateGameArea(size: newSize)
+            }
         }
+        .frame(height: 400)
+        .padding(Layout.spacing20)
+        .glassCard()
+    }
+}
+
+struct StatCard: View {
+    let icon: String
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: Layout.spacing8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(color)
+            
+            Text(value)
+                .appStyle(.subtitle, color: .inkPrimaryDark)
+            
+            Text(title)
+                .appStyle(.caption, color: .inkPrimaryDark.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(Layout.spacing16)
+        .glassCard()
     }
 }
 
 struct RewardBanner: View {
-    let coins: Int
+    let stars: Int
     
     var body: some View {
         ZStack {
@@ -131,15 +202,15 @@ struct RewardBanner: View {
                     .foregroundColor(.accentGold)
                     .pulsing()
                 
-                Text("You Won!")
+                Text("Great Focus!")
                     .appStyle(.title, color: .inkPrimaryDark)
                 
                 HStack(spacing: Layout.spacing8) {
-                    Image(systemName: "dollarsign.circle.fill")
+                    Image(systemName: "star.fill")
                         .foregroundColor(.accentGold)
                         .font(.title2)
                     
-                    Text("\(coins) Coins")
+                    Text("\(stars) Stars Earned")
                         .appStyle(.subtitle, color: .accentGold)
                 }
             }

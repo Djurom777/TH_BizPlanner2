@@ -11,10 +11,10 @@ import Combine
 class StatsViewModel: ObservableObject {
     @Published var totalProjects = 0
     @Published var completedTasks = 0
-    @Published var coinsEarned = 0
+    @Published var starsEarned = 0
     @Published var currentStreak = 0
     @Published var tasksLast7Days: [Int] = []
-    @Published var coinHistoryLast14Days: [Int] = []
+    @Published var starHistoryLast14Days: [Int] = []
     
     private let coreDataService = CoreDataService.shared
     
@@ -29,13 +29,13 @@ class StatsViewModel: ObservableObject {
         
         // Load user-specific stats
         if let user = coreDataService.fetchUser() {
-            coinsEarned = Int(user.coinBalance)
+            starsEarned = Int(user.coinBalance)
             currentStreak = Int(user.streakCount)
         }
         
         // Load chart data
         tasksLast7Days = coreDataService.fetchTasksCompletedInLast7Days()
-        coinHistoryLast14Days = coreDataService.fetchCoinHistoryLast14Days()
+        starHistoryLast14Days = coreDataService.fetchCoinHistoryLast14Days()
     }
     
     func refreshStats() {
@@ -55,11 +55,11 @@ class StatsViewModel: ObservableObject {
         }
     }
     
-    func chartDataForCoins() -> [(String, Int)] {
+    func chartDataForStars() -> [(String, Int)] {
         let calendar = Calendar.current
         let today = Date()
         
-        return coinHistoryLast14Days.enumerated().map { index, balance in
+        return starHistoryLast14Days.enumerated().map { index, balance in
             let date = calendar.date(byAdding: .day, value: index - 13, to: today) ?? today
             let formatter = DateFormatter()
             formatter.dateFormat = "M/d" // Short date format
@@ -71,8 +71,8 @@ class StatsViewModel: ObservableObject {
         tasksLast7Days.max() ?? 1
     }
     
-    var maxCoinsInHistory: Int {
-        coinHistoryLast14Days.max() ?? 1
+    var maxStarsInHistory: Int {
+        starHistoryLast14Days.max() ?? 1
     }
     
     var averageTasksPerDay: Double {
@@ -80,7 +80,7 @@ class StatsViewModel: ObservableObject {
         return tasksLast7Days.isEmpty ? 0 : Double(sum) / Double(tasksLast7Days.count)
     }
     
-    var totalCoinsFromTasks: Int {
-        completedTasks * 10 // 10 coins per completed task
+    var totalStarsFromTasks: Int {
+        completedTasks * 10 // 10 stars per completed task
     }
 }

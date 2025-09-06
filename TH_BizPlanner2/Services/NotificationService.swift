@@ -71,7 +71,7 @@ class NotificationService: ObservableObject {
         guard UserDefaultsService.shared.notificationsEnabled else { return }
         
         let content = UNMutableNotificationContent()
-        content.title = "PlinkoBiz Planner"
+        content.title = "TaskMaster Planner"
         content.body = "Time to check your tasks and make progress on your goals!"
         content.sound = .default
         

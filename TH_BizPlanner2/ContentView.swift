@@ -12,7 +12,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        Text("PlinkoBiz Planner")
+        Text("TaskMaster Planner")
             .appStyle(.title, color: .inkPrimaryDark)
     }
 }

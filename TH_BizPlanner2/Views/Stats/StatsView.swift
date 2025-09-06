@@ -20,7 +20,7 @@ struct StatsView: View {
                 // Header
                 GradientHeader(
                     title: "Stats",
-                    coinBalance: appViewModel.coinBalance
+                    starBalance: appViewModel.starBalance
                 )
                 
                 // Content
@@ -74,9 +74,9 @@ struct KPICardsView: View {
                 )
                 
                 KPICard(
-                    icon: "dollarsign.circle.fill",
-                    title: "Coins Earned",
-                    value: "\(statsViewModel.coinsEarned)",
+                    icon: "star.fill",
+                    title: "Stars Earned",
+                    value: "\(statsViewModel.starsEarned)",
                     color: .accentGold
                 )
                 
@@ -138,12 +138,12 @@ struct ChartsView: View {
             .padding(Layout.spacing16)
             .glassCard()
             
-            // Coins Chart
+            // Stars Chart
             VStack(alignment: .leading, spacing: Layout.spacing16) {
-                Text("Coin History (14 Days)")
+                Text("Star History (14 Days)")
                     .appStyle(.title, color: .inkPrimaryDark)
                 
-                CoinsLineChart()
+                StarsLineChart()
                     .environmentObject(statsViewModel)
             }
             .padding(Layout.spacing16)
@@ -198,24 +198,24 @@ struct TasksBarChart: View {
     }
 }
 
-struct CoinsLineChart: View {
+struct StarsLineChart: View {
     @EnvironmentObject var statsViewModel: StatsViewModel
     
     var body: some View {
         VStack(spacing: Layout.spacing12) {
             HStack {
-                Text("Coin Balance Over Time")
+                Text("Star Balance Over Time")
                     .appStyle(.body, color: .inkPrimaryDark.opacity(0.8))
                 
                 Spacer()
                 
-                Text("Peak: \(statsViewModel.maxCoinsInHistory)")
+                Text("Peak: \(statsViewModel.maxStarsInHistory)")
                     .appStyle(.caption, color: .inkPrimaryDark.opacity(0.6))
             }
             
             GeometryReader { geometry in
-                let chartData = statsViewModel.chartDataForCoins()
-                let maxValue = max(1, statsViewModel.maxCoinsInHistory)
+                let chartData = statsViewModel.chartDataForStars()
+                let maxValue = max(1, statsViewModel.maxStarsInHistory)
                 let width = geometry.size.width
                 let height = geometry.size.height
                 
@@ -270,7 +270,7 @@ struct CoinsLineChart: View {
             
             // X-axis labels
             HStack {
-                let chartData = statsViewModel.chartDataForCoins()
+                let chartData = statsViewModel.chartDataForStars()
                 ForEach(Array(chartData.enumerated()), id: \.offset) { index, data in
                     if index % 3 == 0 || index == chartData.count - 1 {
                         Text(data.0)

@@ -54,11 +54,11 @@ struct OnboardingSlidesView: View {
             title: "Plan Your Success",
             description: "Create projects and organize tasks with ease. Set deadlines, track progress, and achieve your goals step by step."
         ),
-        OnboardingSlide(
-            icon: "gamecontroller.fill",
-            title: "Play & Earn",
-            description: "Complete tasks to earn coins and unlock the fun Plinko game. Turn productivity into an engaging experience."
-        ),
+                    OnboardingSlide(
+                icon: "gamecontroller.fill",
+                title: "Play & Earn",
+                description: "Complete tasks to earn stars and unlock fun mini-games. Turn productivity into an engaging experience with achievements."
+            ),
         OnboardingSlide(
             icon: "chart.line.uptrend.xyaxis",
             title: "Track Your Growth",

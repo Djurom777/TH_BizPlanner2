@@ -10,8 +10,6 @@ import SwiftUI
 struct CreateProfileView: View {
     @State private var name = ""
     @State private var goal = ""
-    @State private var avatarImage: UIImage?
-    @State private var showingImagePicker = false
     
     let onProfileCreated: (User) -> Void
     
@@ -32,50 +30,10 @@ struct CreateProfileView: View {
                 }
                 .padding(.top, Layout.spacing24)
                 
-                // Avatar section
+                // Welcome message
                 VStack(spacing: Layout.spacing16) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.surface)
-                            .frame(width: 120, height: 120)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.border, lineWidth: 2)
-                            )
-                        
-                        if let avatarImage = avatarImage {
-                            Image(uiImage: avatarImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 120, height: 120)
-                                .clipShape(Circle())
-                        } else {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(.border)
-                        }
-                        
-                        // Edit button
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                Button {
-                                    showingImagePicker = true
-                                } label: {
-                                    Image(systemName: "camera.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(.primary)
-                                        .background(Color.white, in: Circle())
-                                }
-                                .offset(x: -8, y: -8)
-                            }
-                        }
-                        .frame(width: 120, height: 120)
-                    }
-                    
-                    Text("Add Photo (Optional)")
-                        .appStyle(.caption, color: .inkPrimaryDark.opacity(0.6))
+                    Text("Welcome to BizKo Planner!")
+                        .appStyle(.subtitle, color: .inkPrimaryDark)
                 }
                 
                 // Form fields
@@ -109,24 +67,16 @@ struct CreateProfileView: View {
             }
         }
         .background(Color.appBackground.ignoresSafeArea())
-        .sheet(isPresented: $showingImagePicker) {
-            ImagePickerView(selectedImage: $avatarImage)
-        }
     }
     
     private func createProfile() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedGoal = goal.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        var avatarData: Data?
-        if let avatarImage = avatarImage {
-            avatarData = avatarImage.jpegData(compressionQuality: 0.8)
-        }
-        
         let user = CoreDataService.shared.createUser(
             name: trimmedName,
             goal: trimmedGoal.isEmpty ? nil : trimmedGoal,
-            avatarData: avatarData
+            avatarData: nil
         )
         
         onProfileCreated(user)

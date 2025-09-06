@@ -10,7 +10,7 @@ import Combine
 
 class AppViewModel: ObservableObject {
     @Published var currentUser: User?
-    @Published var coinBalance: Int32 = 0
+    @Published var starBalance: Int32 = 0
     @Published var showOnboarding = false
     
     private let coreDataService = CoreDataService.shared
@@ -31,7 +31,7 @@ class AppViewModel: ObservableObject {
     
     private func loadInitialData() {
         currentUser = coreDataService.fetchUser()
-        updateCoinBalance()
+        updateStarBalance()
         
         if currentUser == nil && userDefaultsService.hasOnboarded {
             // Data was deleted but onboarding flag still exists
@@ -39,13 +39,13 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    func updateCoinBalance() {
-        coinBalance = currentUser?.coinBalance ?? 0
+    func updateStarBalance() {
+        starBalance = currentUser?.coinBalance ?? 0
     }
     
     func completeOnboarding(with user: User) {
         currentUser = user
-        updateCoinBalance()
+        updateStarBalance()
         userDefaultsService.hasOnboarded = true
         
         // Schedule daily reminder
@@ -61,7 +61,7 @@ class AppViewModel: ObservableObject {
         
         // Reset local state
         currentUser = nil
-        coinBalance = 0
+        starBalance = 0
         
         // This will trigger showOnboarding = true due to the binding
     }
@@ -69,21 +69,21 @@ class AppViewModel: ObservableObject {
     private func resetToOnboarding() {
         userDefaultsService.hasOnboarded = false
         currentUser = nil
-        coinBalance = 0
+        starBalance = 0
     }
     
-    func spendCoins(_ amount: Int32) -> Bool {
-        guard coinBalance >= amount else { return false }
+    func spendStars(_ amount: Int32) -> Bool {
+        guard starBalance >= amount else { return false }
         
         coreDataService.updateUserCoins(by: -amount)
         currentUser = coreDataService.fetchUser()
-        updateCoinBalance()
+        updateStarBalance()
         return true
     }
     
-    func earnCoins(_ amount: Int32) {
+    func earnStars(_ amount: Int32) {
         coreDataService.updateUserCoins(by: amount)
         currentUser = coreDataService.fetchUser()
-        updateCoinBalance()
+        updateStarBalance()
     }
 }

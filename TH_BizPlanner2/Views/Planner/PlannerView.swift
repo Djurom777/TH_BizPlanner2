@@ -19,10 +19,10 @@ struct PlannerView: View {
                 
                 VStack(spacing: 0) {
                     // Header
-                    GradientHeader(
-                        title: "Planner",
-                        coinBalance: appViewModel.coinBalance
-                    )
+                                    GradientHeader(
+                    title: "Planner",
+                    starBalance: appViewModel.starBalance
+                )
                     
                     // Content
                     ScrollView {
@@ -105,7 +105,7 @@ struct EmptyProjectsView: View {
                 Text("No Projects Yet")
                     .appStyle(.title, color: .inkPrimaryDark)
                 
-                Text("Create your first project to start planning and earning coins!")
+                Text("Create your first project to start planning and earning stars!")
                     .appStyle(.body, color: .inkPrimaryDark.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
