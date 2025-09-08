@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		78CD00402E6F5B81004D60A1 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78CD003F2E6F5B81004D60A1 /* LoadingView.swift */; };
 		78CDFC902E679205004D60A1 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 78CDFC8F2E679205004D60A1 /* Launch Screen.storyboard */; };
 		78CDFC922E679237004D60A1 /* Launch Screen 2.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 78CDFC912E679237004D60A1 /* Launch Screen 2.storyboard */; };
 /* End PBXBuildFile section */
@@ -29,6 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		78CD003F2E6F5B81004D60A1 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		78CDFC8F2E679205004D60A1 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		78CDFC912E679237004D60A1 /* Launch Screen 2.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen 2.storyboard"; sourceTree = "<group>"; };
 		78F1BBE32E4E53AF00A2A893 /* TH_BizPlanner2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TH_BizPlanner2.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,6 +84,7 @@
 		78F1BBDA2E4E53AF00A2A893 = {
 			isa = PBXGroup;
 			children = (
+				78CD003F2E6F5B81004D60A1 /* LoadingView.swift */,
 				78CDFC8F2E679205004D60A1 /* Launch Screen.storyboard */,
 				78CDFC912E679237004D60A1 /* Launch Screen 2.storyboard */,
 				78F1BBE52E4E53AF00A2A893 /* TH_BizPlanner2 */,
@@ -247,6 +250,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78CD00402E6F5B81004D60A1 /* LoadingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -420,7 +424,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "DJU.TH-BizPlanner2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -460,7 +464,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "DJU.TH-BizPlanner2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
